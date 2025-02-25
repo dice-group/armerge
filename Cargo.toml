@@ -4,3 +4,7 @@ members = [
     "armerge",
     "armerge-cli",
 ]
+
+[workspace.dependencies]
+tracing = "0.1.41"
+regex = "1.11.1"

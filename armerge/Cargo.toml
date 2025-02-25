@@ -11,16 +11,18 @@ categories = ["command-line-utilities", "development-tools::build-utils"]
 description = "Tool to merge and control visibility of static libraries"
 
 [dependencies]
-objpoke = { git = "https://github.com/dice-group/objpoke", rev = "7a8f8114db00304bb4d83a5425c13898ce881adc" }
+objpoke = { git = "https://github.com/dice-group/objpoke", rev = "c43ab668dafcb4bfbd7c16a0dd654ee759d7fbb3" }
+
+tracing = { workspace = true }
+regex = { workspace = true }
+
 ar = "0.9"
 tempfile = "3"
 rand = "0.9"
 object = "0.36"
 goblin = "0.9"
-regex = "1"
 rayon = "1"
 thiserror = "2"
-tracing = "0.1"
 
 [features]
 # EXPERIMENTAL. Uses objpoke instead of objcopy for localizing ELF symbols in-place. Very fast, but not stable for production use.

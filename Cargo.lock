@@ -376,7 +376,7 @@ dependencies = [
 [[package]]
 name = "objpoke"
 version = "0.3.0"
-source = "git+https://github.com/dice-group/objpoke?rev=7a8f8114db00304bb4d83a5425c13898ce881adc#7a8f8114db00304bb4d83a5425c13898ce881adc"
+source = "git+https://github.com/dice-group/objpoke?rev=c43ab668dafcb4bfbd7c16a0dd654ee759d7fbb3#c43ab668dafcb4bfbd7c16a0dd654ee759d7fbb3"
 dependencies = [
  "anyhow",
  "goblin",
