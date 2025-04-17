@@ -19,7 +19,7 @@ pub fn create_merged_object(
         Vec::new()
     };
 
-    let ld_path = if let Some(ld_var) = std::env::var_os("LD") {
+    let ld_path = if let Some(ld_var) = std::env::var_os("ARMERGE_LD") {
         ld_var
     } else {
         OsString::from_str("ld").unwrap()
