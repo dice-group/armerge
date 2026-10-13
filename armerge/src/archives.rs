@@ -97,7 +97,7 @@ pub fn extract_objects<I: IntoParallelIterator<Item = InputLibrary<R>>, R: Read>
                         "{}@{}.{}.o",
                         input_lib.name,
                         String::from_utf8_lossy(entry.header().identifier()),
-                        &rnd
+                        rnd
                     ));
 
                     let hint_bytes = &mut [0u8; 16];
