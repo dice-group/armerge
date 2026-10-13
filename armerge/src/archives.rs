@@ -174,3 +174,25 @@ pub fn merge(mut output: Box<dyn ArBuilder>, objects_dir: ObjectTempDir) -> Resu
     output.close()?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ArchiveContents::*;
+
+    #[test]
+    fn merge_contents() {
+        assert_eq!(ArchiveContents::merge(Empty, Elf), Elf);
+        assert_eq!(ArchiveContents::merge(MachO, Empty), MachO);
+        assert_eq!(ArchiveContents::merge(Elf, Elf), Elf);
+        assert_eq!(ArchiveContents::merge(Elf, MachO), Mixed);
+        assert_eq!(ArchiveContents::merge(Elf, Other), Mixed);
+        assert_eq!(ArchiveContents::merge(Mixed, Empty), Mixed);
+    }
+
+    #[test]
+    fn object_name_strips_random_suffix() {
+        let path = std::path::Path::new("/tmp/armerge.xyz/libfoo.a@bar.o.Ab12Cd34.o");
+        assert_eq!(get_object_name_from_path(path), "libfoo.a@bar.o");
+    }
+}

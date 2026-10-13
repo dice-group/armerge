@@ -5,11 +5,12 @@ mod merge_error;
 mod objects;
 mod process_input_error;
 
-pub use crate::input_library::InputLibrary;
 use crate::{
     arbuilder::{common::CommonArBuilder, mac::MacArBuilder, ArBuilder},
-    archives::{ArchiveContents, ExtractedArchive},
-    merge_error::MergeError,
+    archives::ExtractedArchive,
+};
+pub use crate::{
+    archives::ArchiveContents, input_library::InputLibrary, merge_error::MergeError,
     process_input_error::ProcessInputError,
 };
 use rayon::prelude::*;
