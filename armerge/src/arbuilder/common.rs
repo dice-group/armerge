@@ -23,7 +23,9 @@ impl Debug for CommonArBuilder {
 
 impl ArBuilder for CommonArBuilder {
     fn append_obj(&mut self, path: &Path) -> Result<(), MergeError> {
-        self.builder.append_path(path).map_err(MergeError::WritingArchive)?;
+        self.builder
+            .append_path(path)
+            .map_err(MergeError::WritingArchive)?;
         Ok(())
     }
 

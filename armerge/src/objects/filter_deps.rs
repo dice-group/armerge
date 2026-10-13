@@ -10,7 +10,11 @@ use tracing::{event_enabled, info, Level};
 
 use crate::{archives::get_object_name_from_path, objects::syms::ObjectSyms};
 
-fn add_deps_recursive(objs_set: &mut HashSet<PathBuf>, syms: &BTreeMap<PathBuf, ObjectSyms>, obj: &ObjectSyms) {
+fn add_deps_recursive(
+    objs_set: &mut HashSet<PathBuf>,
+    syms: &BTreeMap<PathBuf, ObjectSyms>,
+    obj: &ObjectSyms,
+) {
     for dep in &obj.deps {
         if objs_set.insert(dep.to_owned()) {
             add_deps_recursive(objs_set, syms, syms.get(dep).unwrap());
@@ -25,7 +29,12 @@ pub fn filter_required_objects(
 ) -> Result<BTreeMap<PathBuf, ObjectSyms>, MergeError> {
     let mut object_syms = objects
         .into_par_iter()
-        .map(|obj_path| Ok::<_, MergeError>((obj_path.to_owned(), ObjectSyms::new(obj_path, keep_or_remove, regexes)?)))
+        .map(|obj_path| {
+            Ok::<_, MergeError>((
+                obj_path.to_owned(),
+                ObjectSyms::new(obj_path, keep_or_remove, regexes)?,
+            ))
+        })
         .collect::<Result<BTreeMap<PathBuf, ObjectSyms>, _>>()?;
     ObjectSyms::check_dependencies(&mut object_syms);
 

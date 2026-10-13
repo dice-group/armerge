@@ -56,7 +56,10 @@ impl ArMerger {
                     .replace('/', "_");
                 match File::open(path) {
                     Ok(f) => Ok(InputLibrary::new(filename, f)),
-                    Err(e) => Err(ProcessInputError::FileOpen { path: path.to_owned(), inner: e }),
+                    Err(e) => Err(ProcessInputError::FileOpen {
+                        path: path.to_owned(),
+                        inner: e,
+                    }),
                 }
             })
             .collect();
@@ -76,13 +79,13 @@ impl ArMerger {
                     "Input archives contain neither ELF nor Mach-O files, trying to continue with your host toolchain"
                 );
                 arbuilder::host_platform_builder(output.as_ref())
-            },
+            }
             ArchiveContents::Mixed => {
                 error!(
                     "Input archives contain different object file formats, trying to continue with your host toolchain"
                 );
                 arbuilder::host_platform_builder(output.as_ref())
-            },
+            }
         })
     }
 
@@ -121,7 +124,11 @@ impl ArMerger {
             self.extracted.object_dir,
             keep_or_remove,
             symbols_regexes.into_iter().collect(),
-            object_order.into_iter().enumerate().map(|(i, s)| (s, i)).collect(),
+            object_order
+                .into_iter()
+                .enumerate()
+                .map(|(i, s)| (s, i))
+                .collect(),
         )
     }
 }

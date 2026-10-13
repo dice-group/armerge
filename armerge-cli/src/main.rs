@@ -44,7 +44,9 @@ fn main() {
         filter = filter.add_directive(Directive::from(Level::INFO));
     }
 
-    tracing_subscriber::fmt::fmt().with_env_filter(filter).init();
+    tracing_subscriber::fmt::fmt()
+        .with_env_filter(filter)
+        .init();
 
     if let Err(e) = err_main(opt) {
         error!("{}", e);
@@ -69,30 +71,38 @@ fn err_main(opt: Opt) -> Result<(), Box<dyn Error>> {
             // If we don't need to localize any symbols, this is the easy case where we just extract
             // contents and re-pack them, no linker necessary.
             merger.merge_simple()?;
-        },
+        }
         (false, true) => {
             let keep_symbols: Vec<Regex> = opt
                 .keep_symbols
                 .into_iter()
                 .map(|s| Regex::new(&s))
                 .collect::<Result<Vec<_>, _>>()?;
-            merger.merge_and_localize_ordered(ArmergeKeepOrRemove::KeepSymbols, keep_symbols, object_order)?;
-        },
+            merger.merge_and_localize_ordered(
+                ArmergeKeepOrRemove::KeepSymbols,
+                keep_symbols,
+                object_order,
+            )?;
+        }
         (true, false) => {
             let remove_symbols: Vec<Regex> = opt
                 .remove_symbols
                 .into_iter()
                 .map(|s| Regex::new(&s))
                 .collect::<Result<Vec<_>, _>>()?;
-            merger.merge_and_localize_ordered(ArmergeKeepOrRemove::RemoveSymbols, remove_symbols, object_order)?;
-        },
+            merger.merge_and_localize_ordered(
+                ArmergeKeepOrRemove::RemoveSymbols,
+                remove_symbols,
+                object_order,
+            )?;
+        }
         (false, false) => {
             return Err(
                 "Can't have both keep-symbols and remove-symbols options at the same time"
                     .to_string()
                     .into(),
             );
-        },
+        }
     }
 
     Ok(())

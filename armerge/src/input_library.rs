@@ -11,7 +11,10 @@ impl<R: Read> InputLibrary<R> {
     /// The library's name is used to get more meaningful messages in case of errors.
     /// The reader reads the binary data of the static library file.
     pub fn new<IntoString: Into<String>>(name: IntoString, reader: R) -> Self {
-        Self { name: name.into(), reader }
+        Self {
+            name: name.into(),
+            reader,
+        }
     }
 }
 
