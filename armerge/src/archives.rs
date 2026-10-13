@@ -2,8 +2,8 @@ use crate::{
     arbuilder::ArBuilder, input_library::InputLibrary, objects::ObjectTempDir, MergeError,
     MergeError::ExternalToolLaunchError, ProcessInputError,
 };
-use ar::Archive;
 use goblin::{peek_bytes, Hint};
+use object::read::archive::ArchiveFile;
 use rand::{
     distr::{Alphanumeric, SampleString},
     rng,
@@ -12,8 +12,7 @@ use rayon::prelude::*;
 use std::{
     ffi::OsString,
     fmt::{Debug, Formatter},
-    fs::File,
-    io::{Read, Write},
+    io::Read,
     str::FromStr,
 };
 use tracing::info;
@@ -85,33 +84,34 @@ pub fn extract_objects<I: IntoParallelIterator<Item = InputLibrary<R>>, R: Read>
         .into_par_iter()
         .try_fold(
             || (Vec::new(), ArchiveContents::Empty),
-            |(mut objects, mut archive_contents), input_lib| {
-                let mut archive = Archive::new(input_lib.reader);
-                while let Some(entry_result) = archive.next_entry() {
-                    let mut entry = entry_result
-                        .map_err(|e| ProcessInputError::ReadingArchive { name: input_lib.name.clone(), inner: e })?;
+            |(mut objects, mut archive_contents), mut input_lib| {
+                let reading_err =
+                    |e: std::io::Error| ProcessInputError::ReadingArchive { name: input_lib.name.clone(), inner: e };
+                let parse_err = |e: object::Error| reading_err(std::io::Error::other(e));
+                let mut data = Vec::new();
+                input_lib.reader.read_to_end(&mut data).map_err(reading_err)?;
+                let archive = ArchiveFile::parse(data.as_slice()).map_err(parse_err)?;
+                for member in archive.members() {
+                    let member = member.map_err(parse_err)?;
+                    let entry = member.data(data.as_slice()).map_err(parse_err)?;
 
                     let rnd: String = Alphanumeric.sample_string(&mut rng(), 8);
                     let mut obj_path = dir.path().to_owned();
                     obj_path.push(format!(
                         "{}@{}.{}.o",
                         input_lib.name,
-                        String::from_utf8_lossy(entry.header().identifier()),
+                        String::from_utf8_lossy(member.name()),
                         rnd
                     ));
 
-                    let hint_bytes = &mut [0u8; 16];
-                    entry
-                        .read_exact(hint_bytes)
-                        .map_err(|e| ProcessInputError::ReadingArchive { name: input_lib.name.clone(), inner: e })?;
+                    let hint_bytes = entry
+                        .get(..16)
+                        .and_then(|h| h.try_into().ok())
+                        .ok_or_else(|| reading_err(std::io::ErrorKind::UnexpectedEof.into()))?;
                     let obj_type = archive_object_type(hint_bytes);
                     archive_contents = ArchiveContents::merge(archive_contents, obj_type);
 
-                    let mut file = File::create(&obj_path)
-                        .map_err(|e| ProcessInputError::ExtractingObject { path: obj_path.to_owned(), inner: e })?;
-                    file.write_all(hint_bytes)
-                        .map_err(|e| ProcessInputError::ExtractingObject { path: obj_path.to_owned(), inner: e })?;
-                    std::io::copy(&mut entry, &mut file)
+                    std::fs::write(&obj_path, entry)
                         .map_err(|e| ProcessInputError::ExtractingObject { path: obj_path.to_owned(), inner: e })?;
                     objects.push(obj_path);
                 }

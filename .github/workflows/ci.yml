@@ -11,17 +11,20 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v5
+
     - name: Build (lib)
       run: cargo build --lib --no-default-features
+
     - name: Build (bin)
       run: cargo build --all
+
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v5
@@ -33,7 +36,7 @@ jobs:
       run: cargo test --all
 
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v5
 
@@ -47,7 +50,7 @@ jobs:
       run: cargo clippy --all --all-targets --all-features -- -D warnings
 
   fmt:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v5
 

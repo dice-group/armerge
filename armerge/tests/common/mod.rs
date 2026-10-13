@@ -56,9 +56,9 @@ pub fn init() {
     static INIT: Once = Once::new();
     INIT.call_once(|| {
         let tools: &[&str] = if cfg!(target_os = "macos") {
-            &["clang", "clang++", "libtool"]
+            &["ar", "clang", "clang++", "libtool"]
         } else {
-            &["clang", "clang++", "ld.lld", "llvm-objcopy", "llvm-ranlib"]
+            &["ar", "clang", "clang++", "ld.lld", "llvm-objcopy", "llvm-ranlib"]
         };
         for tool in tools {
             assert!(
@@ -105,6 +105,32 @@ pub fn archive(dir: &Path, name: &str, objs: &[PathBuf]) -> PathBuf {
     for obj in objs {
         builder.append_path(obj).unwrap();
     }
+    path
+}
+
+/// Writes an archive by hand, so that special members like 64-bit symbol indexes can be included.
+/// `bsd` selects the BSD long-name encoding used by macOS `libtool`.
+pub fn raw_archive(dir: &Path, name: &str, members: &[(&str, &[u8])], bsd: bool) -> PathBuf {
+    let mut out = b"!<arch>\n".to_vec();
+    for &(member, data) in members {
+        let mut ident = member.to_owned();
+        let mut prefix: &[u8] = b"";
+        if bsd && member.len() > 16 {
+            ident = format!("#1/{}", member.len());
+            prefix = member.as_bytes();
+        } else if !bsd && !member.starts_with('/') {
+            ident.push('/');
+        }
+        let size = prefix.len() + data.len();
+        out.extend_from_slice(format!("{ident:<16}{:<12}{:<6}{:<6}{:<8}{size:<10}`\n", 0, 0, 0, 644).as_bytes());
+        out.extend_from_slice(prefix);
+        out.extend_from_slice(data);
+        if size % 2 == 1 {
+            out.push(b'\n');
+        }
+    }
+    let path = dir.join(name);
+    std::fs::write(&path, out).unwrap();
     path
 }
 

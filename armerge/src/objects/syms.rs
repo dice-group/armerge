@@ -24,7 +24,10 @@ impl ObjectSyms {
         let file = object::File::parse(data.as_slice())
             .map_err(|e| MergeError::InvalidObject { path: object_path.to_owned(), inner: e })?;
         for sym in file.symbols() {
-            if sym.kind() != SymbolKind::Text && sym.kind() != SymbolKind::Data && sym.kind() != SymbolKind::Unknown {
+            if !matches!(
+                sym.kind(),
+                SymbolKind::Text | SymbolKind::Data | SymbolKind::Tls | SymbolKind::Unknown
+            ) {
                 continue;
             }
 

@@ -2,8 +2,10 @@
 inline int shared_inline(int x) { return x + 1; }
 template <typename T> T shared_template(T x) { return x * 2; }
 
+extern "C" thread_local int vendor_tls = 0;
+
 namespace vendor {
-int internal_detail(int x) { return shared_inline(x) + shared_template(x); }
+int internal_detail(int x) { return shared_inline(x) + shared_template(x) + vendor_tls++; }
 } // namespace vendor
 
 extern "C" int app_create(int x) { return vendor::internal_detail(x); }
