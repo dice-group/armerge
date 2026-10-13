@@ -57,9 +57,8 @@ pub fn create_symbol_filter_list(
             if keep_or_remove == ArmergeKeepOrRemove::KeepSymbols
                 && (!sym.is_global()
                     || sym.is_undefined()
-                    || (sym.kind() != SymbolKind::Text
-                        && sym.kind() != SymbolKind::Data
-                        && sym.kind() != SymbolKind::Unknown/* ASM functions often end up unknown */))
+                    // ASM functions often end up unknown
+                    || !matches!(sym.kind(), SymbolKind::Text | SymbolKind::Data | SymbolKind::Tls | SymbolKind::Unknown))
             {
                 continue;
             }
